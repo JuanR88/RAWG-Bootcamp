@@ -16,7 +16,7 @@ app = FastAPI(title="RAWG Notebooks Runner", version="0.2.0")
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=PROJECT_ROOT / ".env", override=False)
-NOTEBOOK_DIR = PROJECT_ROOT / "NoteBooks" / "Untitled Folder"
+NOTEBOOK_DIR = PROJECT_ROOT / "NoteBooks"
 
 ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 

@@ -4,6 +4,5 @@
 *.logs
 __pycache__/
 .ipynb_checkpoints/
-artifacts/
 _executed/
 .virtual_documents/

@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 import nbformat
 import papermill as pm
@@ -172,7 +173,7 @@ def predict_success(body: SuccessPredictRequest) -> dict:
 
     try:
         prob = float(model.predict_proba(x)[0][1])
-    except Exception as e:  # noqa: BLE001
+    except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Error prediciendo: {e}")
 
     threshold = float(stats.get("threshold", 0.4))
@@ -206,8 +207,6 @@ class VisualizacionRequest(BaseModel):
     min_year: int = 2000
     max_year: int = 2020
 
-
-@app.post("/run/visualizacion")
 async def run_visualizacion(
     request: Request,
     body: VisualizacionRequest | None = None,
@@ -234,7 +233,7 @@ async def run_visualizacion(
     else:
         try:
             payload = await request.json()
-        except Exception:  # noqa: BLE001
+        except Exception:  
             payload = None
 
         if isinstance(payload, dict):
@@ -277,6 +276,51 @@ async def run_visualizacion(
     return result
 
 
+@app.post("/run/visualizacion", response_class=HTMLResponse)
+async def run_visualizacion_html(
+    request: Request,
+    question: str | None = Query(default=None),
+    min_year: int | None = Query(default=None, ge=1980, le=2100),
+    max_year: int | None = Query(default=None, ge=1980, le=2100),
+    timeout_seconds: int = Query(default=1800, ge=1, le=24 * 3600),
+    kernel_name: str | None = Query(default=None),
+) -> HTMLResponse:
+    """Ejecuta el notebook de visualización y devuelve una página HTML con la gráfica."""
+
+    result = await run_visualizacion(
+        request=request,
+        body=None,
+        question=question,
+        min_year=min_year,
+        max_year=max_year,
+        timeout_seconds=timeout_seconds,
+        kernel_name=kernel_name,
+    )
+
+    img_html = ""
+    if result.get("images_png_base64"):
+        src = f"data:image/png;base64,{result['images_png_base64'][0]}"
+        img_html = f"<img src='{src}' alt='Grafica' style='max-width: 100%; height: auto;'/>"
+
+    respuesta = result.get("respuesta", "")
+
+    html = f"""
+    <html>
+      <head>
+        <meta charset='utf-8'>
+        <title>Visualizacion RAWG</title>
+      </head>
+      <body>
+        <h1>Visualizacion</h1>
+        <div>{img_html}</div>
+        <pre>{respuesta}</pre>
+      </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html)
+
+
 class PreguntaRequest(BaseModel):
     question: str
 
@@ -297,7 +341,7 @@ async def run_preguntas(
     else:
         try:
             payload = await request.json()
-        except Exception:  # noqa: BLE001
+        except Exception: 
             payload = None
 
         if isinstance(payload, dict):

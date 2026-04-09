@@ -16,7 +16,7 @@ El objetivo es convertir el trabajo de análisis en una **API consumible** y fá
 
 Actualmente el servicio está desplegado en una instancia **EC2 de AWS** y se accede mediante la IP pública:
 
-- `http://13.62.171.87:8000`
+- `http://13.62.171.87:8000/docs`
 
 La forma recomendada de probarlo y documentarlo es mediante **Postman**.
 
